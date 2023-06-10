@@ -1,0 +1,132 @@
+package models
+
+import (
+	"VIVASOFT1/src/entities"
+	"database/sql"
+	"sort"
+)
+
+type UserModel struct {
+	Db *sql.DB
+}
+
+type Activity struct {
+	First_Name      string
+	CountrY         string
+	Profile_Picture string
+	Total_Point     int
+}
+
+func (userModel UserModel) FindAll() (user []entities.User, err error) {
+	activities_map := make(map[int]int)
+	user_points := make(map[int]int)
+
+	rows, err := userModel.Db.Query("select * from activities")
+
+	if err != nil {
+		return nil, err
+	} else {
+		for rows.Next() {
+			var ac_id int
+			var points int
+			err2 := rows.Scan(&ac_id, &points)
+			if err2 != nil {
+				return nil, err2
+			} else {
+				activities_map[ac_id] = int(points)
+			}
+		}
+	}
+
+	rows2, err3 := userModel.Db.Query("select * from users")
+
+	if err3 != nil {
+		return nil, err3
+	} else {
+
+		for rows2.Next() {
+			var id int
+			var first_name string
+			var last_name string
+			var country string
+			var profile_picture string
+			err4 := rows2.Scan(&id, &first_name, &last_name, &country, &profile_picture)
+			if err4 != nil {
+				return nil, err4
+			} else {
+				user_points[id] = 0
+			}
+		}
+	}
+
+	rows3, err5 := userModel.Db.Query("select * from activity_logs")
+
+	if err5 != nil {
+		return nil, err5
+	} else {
+		for rows3.Next() {
+			var id int
+			var user_id int
+			var activity_id int
+			var logged_at string
+			err6 := rows3.Scan(&id, &user_id, &activity_id, &logged_at)
+			if err6 != nil {
+				return nil, err6
+			} else {
+				user_points[user_id] = user_points[user_id] + activities_map[activity_id]
+			}
+		}
+	}
+
+
+	var activities []Activity
+
+	rows4, err7 := userModel.Db.Query("select * from users")
+
+	if err7 != nil {
+		return nil, err7
+	} else {
+
+		for rows4.Next() {
+			var id int
+			var first_name string
+			var last_name string
+			var country string
+			var profile_picture string
+			err8 := rows4.Scan(&id, &first_name, &last_name, &country, &profile_picture)
+			if err8 != nil {
+				return nil, err8
+			} else {
+				var temp int = user_points[id]
+				activity := Activity{
+					First_Name:      first_name,
+					CountrY:         country,
+					Profile_Picture: profile_picture,
+					Total_Point:     temp,
+				}
+				activities = append(activities, activity)
+			}
+		}
+	}
+
+	sort.SliceStable(activities, func(i, j int) bool {
+		return activities[i].Total_Point > activities[j].Total_Point
+	})
+
+	var users []entities.User
+	var rank = 0
+
+	for _, i := range activities {
+		rank++
+		user := entities.User{
+			First_name:      i.First_Name,
+			Country:         i.CountrY,
+			Profile_picture: i.Profile_Picture,
+			Total_point:     i.Total_Point,
+			Rank:            rank,
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
