@@ -79,21 +79,19 @@ func (userModel UserModel) FindAll() (user []entities.User, err error) {
 				year := today.Year()
 				month := int(today.Month()) - 1
 				day := today.Day()
-				hour := today.Hour()
-				minute := today.Minute()
-				second := today.Second()
 				year_string := strconv.Itoa(year)
 				month_string := strconv.Itoa(month)
 				day_string := strconv.Itoa(day)
-				hour_string := strconv.Itoa(hour)
-				minute_string := strconv.Itoa(minute)
-				second_string := strconv.Itoa(second)
+				hour_string := "00:00:00"
 				var a_month_ago_time string
-				if month < 10 {
-					a_month_ago_time = year_string + "-0" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string
+				if month < 10 && day < 10 {
+					a_month_ago_time = year_string + "-0" + month_string + "-0" + day_string + " " + hour_string
+				} else if month < 10 {
+					a_month_ago_time = year_string + "-0" + month_string + "-" + day_string + " " + hour_string
+				} else if day < 10 {
+					a_month_ago_time = year_string + "-" + month_string + "-0" + day_string + " " + hour_string
 				} else {
-					a_month_ago_time = year_string + "-" + month_string + "-" + day_string + " " + hour_string + ":" + minute_string + ":" + second_string
-
+					a_month_ago_time = year_string + "-" + month_string + "-" + day_string + " " + hour_string
 				}
 				if a_month_ago_time < logged_at {
 					user_points[user_id] = user_points[user_id] + activities_map[activity_id]
