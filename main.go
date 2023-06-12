@@ -11,7 +11,7 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/user/findall", user_api.FindAll).Methods("GET")
+	router.HandleFunc("/api/user", user_api.FindAll).Methods("GET")
 
 	err := http.ListenAndServe(":3000", router)
 	if err != nil {
